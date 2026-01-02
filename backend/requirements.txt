@@ -1,0 +1,36 @@
+# Fashion AI Chatbot Backend - Requirements
+
+# FastAPI
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+# LangChain / LangGraph - Updated to 0.3.x series for core compatibility
+langgraph==0.2.28  # Latest compatible with core ~0.3
+langchain==0.3.3  # Requires core ~0.3
+langchain-community==0.3.2  # Requires core ~0.3
+langchain-huggingface==0.1.0  # Requires core >=0.3 <0.4
+
+# ML Models
+transformers==4.46.0
+torch==2.4.1
+torchvision==0.19.1
+sentence-transformers==3.1.1
+
+# Vector Database
+faiss-cpu==1.7.4
+
+# Data Processing
+pandas==2.1.4
+numpy==1.26.3
+Pillow==10.2.0
+
+# Google Gemini API (new SDK)
+google-genai>=0.8.0
+
+# Environment
+python-dotenv==1.0.0
+
+# Voice/Audio Processing (STT)
+torchaudio==2.4.1
+pydub==0.25.1
