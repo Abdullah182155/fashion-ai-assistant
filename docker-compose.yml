@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   backend:
+    image: abdullah18215547/fashion-ai-backend:latest
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -10,17 +11,19 @@ services:
     volumes:
       - ./data:/app/data:ro
       - ./backend/vector_db:/app/vector_db
+      - ./backend/saved_audio:/app/saved_audio
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - DATA_PATH=/app/data
       - BACKEND_PORT=8000
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
 
   frontend:
+    image: abdullah18215547/fashion-ai-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
