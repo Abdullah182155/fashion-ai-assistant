@@ -1,0 +1,36 @@
+# General
+.DS_Store
+.env
+.env.local
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+
+# Frontend
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.npm
+frontend/.cache
+
+# Data & Models
+*.bag
+*.bin
+*.pt
+*.pth
+*.onnx
+data/
+
+# Backend Artifacts
+backend/vector_db/
+backend/saved_audio/
+backend/logs/
+backend/venv/
+backend/.venv/
