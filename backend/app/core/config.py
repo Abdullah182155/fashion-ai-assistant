@@ -66,6 +66,19 @@ class Config:
     BACKEND_PORT = int(os.getenv("BACKEND_PORT", "8000"))
     FRONTEND_PORT = int(os.getenv("FRONTEND_PORT", "3000"))
     
+    # Kolors Virtual Try-On Official API
+    KOLORS_API_KEY = os.getenv("KOLORS_API_KEY", "")
+    KOLORS_SECRET_KEY = os.getenv("KOLORS_SECRET_KEY", "")
+    KOLORS_API_BASE_URL = os.getenv("KOLORS_API_BASE_URL", "https://api.kolors.com")
+    KOLORS_MODEL_VERSION = os.getenv("KOLORS_MODEL_VERSION", "kolors-virtual-try-on-v1")
+    KOLORS_TIMEOUT = int(os.getenv("KOLORS_TIMEOUT", "60"))
+    KOLORS_POLL_INTERVAL = int(os.getenv("KOLORS_POLL_INTERVAL", "2"))
+    
+    # Virtual Try-On Settings
+    VIRTUAL_TRYON_ENABLED = os.getenv("VIRTUAL_TRYON_ENABLED", "false").lower() == "true"
+    TRYON_RESULT_DIR = os.getenv("TRYON_RESULT_DIR", "./tryon_results")
+  # seconds
+    
     # Gemini API
     # Gemini API
     _GEMINI_API_KEYS_STR = os.getenv("GEMINI_API_KEY", "AIzaSyAlW_JoOoVb5pzt8B9_peZbfxVeqi0QJOw")

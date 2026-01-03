@@ -542,7 +542,8 @@
 
         card.innerHTML = `
             <img src="${imageUrl}" alt="${item.title}" loading="lazy" 
-                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231a1a3e%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 fill=%22%236366f1%22 font-size=%2240%22>👗</text></svg>'">
+                 onerror="this.src='data:image/svg+xml,%3csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3e%3crect fill=%22%231a1a3e%22 width=%22100%22 height=%22100%22/%3e%3ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 fill=%22%236366f1%22 font-size=%2240%22%3e👗%3c/text%3e%3c/svg%3e'">
+            <button class="tryon-button">✨ Try On</button>
             <div class="result-info">
                 <div class="result-header">
                     <div class="result-title">${item.title || 'Fashion Item'}</div>
@@ -552,6 +553,21 @@
                 <span class="result-score">${(item.score * 100).toFixed(0)}% match</span>
             </div>
         `;
+
+        // Add Try On button click handler
+        const tryOnBtn = card.querySelector('.tryon-button');
+        if (tryOnBtn) {
+            tryOnBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent card click
+                
+                // Open try-on modal
+                if (window.openTryOnModal) {
+                    window.openTryOnModal(productId, item.title || 'Fashion Item', imageUrl);
+                } else {
+                    console.error('Try-on modal not initialized');
+                }
+            });
+        }
 
         return card;
     }
@@ -643,6 +659,272 @@
         isLoading = false;
         updateSendButton();
     }
+
+
+    // ==========================================================================
+    // VIRTUAL TRY-ON FUNCTIONALITY
+    // ==========================================================================
+
+    let tryOnModal = null;
+    let selectedPersonImage = null;
+    let currentGarmentId = null;
+
+    function createTryOnModal() {
+        const modal = document.createElement('div');
+        modal.id = 'tryon-modal';
+        modal.className = 'tryon-modal';
+        modal.innerHTML = `
+            <div class="tryon-overlay"></div>
+            <div class="tryon-container">
+                <div class="tryon-header">
+                    <h2>✨ Virtual Try-On</h2>
+                    <button class="tryon-close" id="tryon-close-btn">&times;</button>
+                </div>
+                <div class="tryon-content">
+                    <div class="tryon-section">
+                        <h3>Step 1: Upload Your Photo</h3>
+                        <div class="person-upload-area" id="person-upload-area">
+                            <input type="file" id="person-image-input" accept="image/*" style="display:none">
+                            <div class="upload-placeholder" id="upload-placeholder">
+                                <div class="upload-icon">📸</div>
+                                <p>Click or drag to upload</p>
+                                <small>Upload a photo of yourself</small>
+                            </div>
+                            <img id="person-preview" class="person-preview" style="display:none">
+                        </div>
+                    </div>
+                    <div class="tryon-section">
+                        <h3>Step 2: Selected Item</h3>
+                        <div class="garment-preview-area">
+                            <img id="garment-preview" class="garment-preview">
+                            <p id="garment-title" class="garment-title"></p>
+                        </div>
+                    </div>
+                    <div class="tryon-section full-width">
+                        <h3>Result</h3>
+                        <div class="result-area" id="tryon-result-area">
+                            <div class="result-placeholder">
+                                <p>Your try-on result will appear here</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tryon-footer">
+                    <button class="btn-secondary" id="cancel-tryon-btn">Cancel</button>
+                    <button class="btn-primary" id="generate-tryon-btn" disabled>
+                        <span class="btn-text">Generate Try-On</span>
+                        <span class="btn-loading" style="display:none">
+                            <span class="spinner"></span> Processing...
+                        </span>
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        return modal;
+    }
+
+    function openTryOnModal(productId, productTitle, productImageUrl) {
+        if (!tryOnModal) {
+            tryOnModal = createTryOnModal();
+            setupTryOnListeners();
+        }
+
+        currentGarmentId = productId;
+        selectedPersonImage = null;
+
+        // Set garment preview
+        const garmentPreview = document.getElementById('garment-preview');
+        const garmentTitle = document.getElementById('garment-title');
+        garmentPreview.src = productImageUrl;
+        garmentTitle.textContent = productTitle;
+
+        // Reset UI
+        const personPreview = document.getElementById('person-preview');
+        const uploadPlaceholder = document.getElementById('upload-placeholder');
+        const generateBtn = document.getElementById('generate-tryon-btn');
+        const resultArea = document.getElementById('tryon-result-area');
+
+        personPreview.style.display = 'none';
+        personPreview.src = '';
+        uploadPlaceholder.style.display = 'flex';
+        generateBtn.disabled = true;
+        resultArea.innerHTML = `
+            <div class="result-placeholder">
+                <p>Your try-on result will appear here</p>
+            </div>
+        `;
+
+        // Show modal
+        tryOnModal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeTryOnModal() {
+        if (tryOnModal) {
+            tryOnModal.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function setupTryOnListeners() {
+        const personImageInput = document.getElementById('person-image-input');
+        const uploadArea = document.getElementById('person-upload-area');
+        const uploadPlaceholder = document.getElementById('upload-placeholder');
+        const personPreview = document.getElementById('person-preview');
+        const closeBtn = document.getElementById('tryon-close-btn');
+        const cancelBtn = document.getElementById('cancel-tryon-btn');
+        const generateBtn = document.getElementById('generate-tryon-btn');
+        const overlay = tryOnModal.querySelector('.tryon-overlay');
+
+        // Click to upload
+        uploadArea.addEventListener('click', () => {
+            personImageInput.click();
+        });
+
+        // File input change
+        personImageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handlePersonImageUpload(file);
+            }
+        });
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handlePersonImageUpload(file);
+            }
+        });
+
+        // Close handlers
+        closeBtn.addEventListener('click', closeTryOnModal);
+        cancelBtn.addEventListener('click', closeTryOnModal);
+        overlay.addEventListener('click', closeTryOnModal);
+
+        // Generate button
+        generateBtn.addEventListener('click', handleGenerateTryOn);
+    }
+
+    function handlePersonImageUpload(file) {
+        selectedPersonImage = file;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const personPreview = document.getElementById('person-preview');
+            const uploadPlaceholder = document.getElementById('upload-placeholder');
+            const generateBtn = document.getElementById('generate-tryon-btn');
+
+            personPreview.src = e.target.result;
+            personPreview.style.display = 'block';
+            uploadPlaceholder.style.display = 'none';
+            generateBtn.disabled = false;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async function handleGenerateTryOn() {
+        if (!selectedPersonImage || !currentGarmentId) return;
+
+        const generateBtn = document.getElementById('generate-tryon-btn');
+        const btnText = generateBtn.querySelector('.btn-text');
+        const btnLoading = generateBtn.querySelector('.btn-loading');
+        const resultArea = document.getElementById('tryon-result-area');
+
+        // Show loading state
+        generateBtn.disabled = true;
+        btnText.style.display = 'none';
+        btnLoading.style.display = 'inline-flex';
+
+        resultArea.innerHTML = `
+            <div class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>Generating your virtual try-on...</p>
+                <small>This may take up to 2 minutes</small>
+            </div>
+        `;
+
+        try {
+            const formData = new FormData();
+            formData.append('person_image', selectedPersonImage);
+            formData.append('garment_product_id', currentGarmentId);
+            formData.append('randomize_seed', 'true');
+
+            const response = await fetch(`${API_BASE}/tryon`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.result_image) {
+                // Display result
+                resultArea.innerHTML = `
+                    <div class="result-success">
+                        <img src="data:image/jpeg;base64,${data.result_image}" alt="Try-on result" class="result-image">
+                        <div class="result-actions">
+                            <button class="btn-download" onclick="downloadTryOnResult('${data.result_image}')">
+                                📥 Download
+                            </button>
+                            <button class="btn-share" onclick="shareTryOnResult()">
+                                📤 Share
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                resultArea.innerHTML = `
+                    <div class="result-error">
+                        <p>❌ ${data.error || data.info || 'Failed to generate try-on'}</p>
+                        <button class="btn-retry" onclick="document.getElementById('generate-tryon-btn').click()">
+                            Try Again
+                        </button>
+                    </div>
+                `;
+            }
+
+        } catch (error) {
+            console.error('Try-on error:', error);
+            resultArea.innerHTML = `
+                <div class="result-error">
+                    <p>❌ Connection error. Make sure the Kolors service is running.</p>
+                    <small>${error.message}</small>
+                </div>
+            `;
+        } finally {
+            // Reset button state
+            btnText.style.display = 'inline';
+            btnLoading.style.display = 'none';
+            generateBtn.disabled = false;
+        }
+    }
+
+    // Make openTryOnModal globally accessible
+    window.openTryOnModal = openTryOnModal;
+
+    // Helper function for downloading result
+    window.downloadTryOnResult = function(base64Image) {
+        const link = document.createElement('a');
+        link.href = `data:image/jpeg;base64,${base64Image}`;
+        link.download = `tryon-result-${Date.now()}.jpg`;
+        link.click();
+    };
+
+    window.shareTryOnResult = function() {
+        alert('Share functionality coming soon!');
+    };
 
     // ==========================================================================
     // HEALTH CHECK

@@ -16,6 +16,7 @@ from .core.config import config
 from .routers.search import router as search_router
 from .routers.products import router as products_router
 from .routers.voice import router as voice_router
+from .routers.tryon import router as tryon_router
 from .utils.embeddings import load_clip_model
 from .utils.faiss_manager import faiss_manager
 from .services.llm_service import initialize_llms
@@ -224,6 +225,7 @@ if os.path.exists(config.IMAGES_PATH):
 app.include_router(search_router)
 app.include_router(products_router)
 app.include_router(voice_router)
+app.include_router(tryon_router)
 
 
 @app.get("/")
