@@ -5,6 +5,10 @@ fastapi==0.109.0
 uvicorn[standard]==0.27.0
 python-multipart==0.0.6
 
+# HTTP Requests (for Kolors API)
+requests==2.32.5
+PyJWT==2.10.1
+
 # LangChain / LangGraph - Updated to 0.3.x series for core compatibility
 langgraph==0.2.28  # Latest compatible with core ~0.3
 langchain==0.3.3  # Requires core ~0.3
@@ -13,8 +17,8 @@ langchain-huggingface==0.1.0  # Requires core >=0.3 <0.4
 
 # ML Models
 transformers==4.46.0
-torch==2.4.1
-torchvision==0.19.1
+torch==2.2.2
+torchvision==0.17.2
 sentence-transformers==3.1.1
 
 # Vector Database
@@ -26,11 +30,11 @@ numpy==1.26.3
 Pillow==10.2.0
 
 # Google Gemini API (new SDK)
-google-genai>=0.8.0
+google-genai==0.8.0
 
 # Environment
 python-dotenv==1.0.0
 
 # Voice/Audio Processing (STT)
-torchaudio==2.4.1
+torchaudio==2.2.2
 pydub==0.25.1

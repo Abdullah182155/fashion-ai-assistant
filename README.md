@@ -1,224 +1,194 @@
-# Fashion AI Chatbot 🎨
+# Dressify - AI Fashion Assistant 👗✨
 
-An AI-powered fashion search chatbot with image recognition, natural language understanding, and smart outfit recommendations. Built with FastAPI backend and an embeddable frontend widget.
+**Dressify** is an advanced AI-powered fashion commerce assistant that revolutionizes how users shop for clothes. It combines **multimodal search** (text, image, and hybrid), **voice interaction**, **virtual try-on**, and a **generative AI stylist** into a single, seamless widget that can be embedded into any e-commerce platform.
 
-## ✨ Features
 
-- **Smart Text Search**: Natural language queries for fashion items
-- **Image Search**: Upload images to find visually similar items using CLIP
-- **Voice Interaction**: Speech-to-Text support using Whisper for voice queries
-- **Outfit Recommendations**: Complete outfit suggestions for any occasion
-- **Gender-Aware**: Intelligent gender detection for relevant results
-- **Embeddable Widget**: Easy to add to any website
 
-## 📸 Screenshots
+## 🚀 Key Features
 
-![Fashion AI Chatbot UI](UI/UI.png)
+### 1. 🧠 Multimodal Hybrid Search
+- **Text Search**: Understands natural language queries like "boho chic summer dress" using semantic understanding.
+- **Visual Search**: Upload an image to find visually similar items using **CLIP** embeddings.
+- **Hybrid Search**: Combine text and image (e.g., upload a photo of a jacket and ask for "this but in red leather") using weighted vectors (FAISS + CLIP).
 
-## 🏗️ Architecture
+### 2. 👕 Virtual Try-On (VTON)
+- **Kolors API Integration**: Users can upload a photo of themselves and a garment to see how it looks on them.
+- **Realistic Generation**: Uses state-of-the-art diffusion models to preserve garment details and body posture.
 
+### 3. 🎙️ Voice Commerce
+- **Voice-to-Text**: Integrated **Whisper** model allows users to shop hands-free by speaking their tailored queries.
+- **Natural Interaction**: "Show me black sneakers under $50" is instantly transcribed and executed.
+
+### 4. 🤖 AI Personal Stylist
+- **Generative Chat**: Powered by **Google Gemini**, the assistant acts as a personal stylist, offering fashion advice, outfit combinations, and trend insights.
+- **Context Aware**: Remembers conversation history for a coherent shopping experience.
+
+---
+
+## 🏗️ Technical Architecture
+
+Dressify is built as a modular system with a Python FastAPI backend and a lightweight, embeddable JavaScript frontend.
+
+```mermaid
+graph TD
+    User[User] -->|Interacts| Widget[Frontend Widget]
+    Widget -->|HTTP/REST| API[FastAPI Backend]
+    
+    subgraph Backend Services
+        API --> Router{Router}
+        Router -->|/search| SearchEngine[Search Engine]
+        Router -->|/chat| Agent[LangGraph Agent]
+        Router -->|/tryon| VTON[Virtual Try-On Service]
+        Router -->|/voice| Voice[Whisper Service]
+        
+        SearchEngine --> CLIP[CLIP Model]
+        SearchEngine --> FAISS[(FAISS Vector DB)]
+        
+        Agent --> Gemini[Google Gemini API]
+        
+        VTON --> Kolors[Kolors API]
+    end
 ```
-┌─────────────────┐     ┌─────────────────┐
-│   Frontend      │────▶│   Backend       │
-│   (Port 3000)   │     │   (Port 8000)   │
-│                 │     │                 │
-│  - Express      │     │  - FastAPI      │
-│  - Widget UI    │     │  - LangGraph    │
-│  - Magic CSS    │     │  - Whisper STT  │
-│                 │     │  - CLIP & FAISS │
-│                 │     │  - Gemini API   │
-└─────────────────┘     └─────────────────┘
-```
+
+## 🛠️ Tech Stack
+
+### Backend
+- **Framework**: FastAPI (Python 3.10+)
+- **Orchestration**: LangGraph (for stateful agent workflows)
+- **AI Models**:
+  - **Vision/Embedding**: `patrickjohncyh/fashion-clip`
+  - **LLM**: Google Gemini (`gemini-2.0-flash-lite`)
+  - **STT**: OpenAI Whisper (`openai/whisper-small.en`)
+  - **VTON**: Kolors Virtual Try-On API
+- **Vector Database**: FAISS (Facebook AI Similarity Search)
+- **Data Prcoessing**: Pandas, NumPy, Pillow
+
+### Frontend
+- **Core**: Vanilla JavaScript (ES6+), HTML5, CSS3
+- **Styling**: Custom "Magic UI" CSS variables, Glassmorphism design
+- **Server**: Express.js (for serving static assets and proxying)
+
+---
 
 ## 📋 Prerequisites
 
-- Python 3.10+
-- Node.js 18+
-- Google Gemini API key
-- ffmpeg (required for audio processing)
+- **Python 3.10+** installed
+- **Node.js 18+** installed
+- **FFmpeg** installed (required for audio processing)
+- **API Keys**:
+  - Google Gemini API Key
+  - Kolors API Key (for Virtual Try-On)
 
-## 🚀 Quick Start
+---
 
-### 1. Clone and Setup
+## ⚡ Installation & Setup
 
+### 1. Clone the Repository
 ```bash
-cd d:\projects\NTI_FP1
+git clone https://github.com/Start-Tech-Team/dressify.git
+cd dressify/fashion-ai-assistant
+```
 
-# Backend setup
+### 2. Backend Setup
+```bash
 cd backend
-pip install -r requirements.txt
-cp .env.example .env
-# Edit .env and add your GEMINI_API_KEY
+# Create virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
 
-# Frontend setup
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure Environment
+cp .env.example .env
+```
+
+**Edit `backend/.env`:**
+```ini
+BACKEND_PORT=8000
+# Google Gemini (Required for Chat/Search)
+GEMINI_API_KEY=your_gemini_key_here
+# Kolors (Required for Try-On)
+KOLORS_API_KEY=your_kolors_key_here
+KOLORS_SECRET_KEY=your_kolors_secret_here
+VIRTUAL_TRYON_ENABLED=true
+```
+
+### 3. Frontend Setup
+```bash
 cd ../frontend
 npm install
+
+# Configure Environment
 cp .env.example .env
 ```
 
-### 2. Configure Environment
-
-Edit `backend/.env`:
-```
-GEMINI_API_KEY=your_api_key_here
-BACKEND_PORT=8000
+**Edit `frontend/.env`:**
+```ini
+PORT=3000
+BACKEND_URL=http://localhost:8000
 ```
 
-### 3. Run Both Servers
+---
 
-**Option A: Using run.sh (Linux/Mac/Git Bash)**
+## 🏃‍♂️ Running the Application
+
+You can start the application using the provided helper script or manually.
+
+### Option A: Using Helper Script (Mac/Linux)
 ```bash
+# From project root
 ./run.sh
 ```
 
-**Option B: Manually**
+### Option B: Manual Start
 
-Terminal 1 (Backend):
+**Terminal 1 (Backend)**
 ```bash
 cd backend
 uvicorn app.main:app --reload --port 8000
 ```
 
-Terminal 2 (Frontend):
+**Terminal 2 (Frontend)**
 ```bash
 cd frontend
 npm start
 ```
 
-### 4. Open in Browser
+Open **`http://localhost:3000`** in your browser to see the demo store with the Dressify widget.
 
-- **Frontend**: http://localhost:3000
-- **Backend API Docs**: http://localhost:8000/docs
+---
 
-## 📖 API Endpoints
+## 📖 API Documentation
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/health` | GET | Health check |
-| `/api/search` | POST | Search with text/image |
-| `/images/{id}` | GET | Get product image |
+Once the backend is running, full interactive documentation (Swagger/Redoc) is available at:
+- **Swagger UI**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`
 
-### Search Request Example
+### Key Endpoints
 
-```bash
-# Text search
-curl -X POST http://localhost:8000/api/search \
-  -F "text_query=blue jeans"
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/search` | Multimodal search (text, image, hybrid) |
+| `POST` | `/api/chat` | Chat with the AI Stylist |
+| `POST` | `/api/tryon` | Generate virtual try-on image |
+| `POST` | `/api/voice/transcribe` | Transcribe audio blob to text |
+| `GET` | `/api/products/{id}` | Get specific product details |
 
-# Image search
-curl -X POST http://localhost:8000/api/search \
-  -F "image=@path/to/image.jpg"
+---
 
-# Hybrid search
-curl -X POST http://localhost:8000/api/search \
-  -F "text_query=similar shirt" \
-  -F "image=@path/to/pants.jpg"
-```
+## 👥 Meet the Team
 
-## 🔗 Embedding on Your Website
+| Name | Role | GitHub |
+|------|------|--------|
+| **Abdullah Emara** | AI Engineer / Team Lead | [@Abdullah182155](https://github.com/Abdullah182155) |
+| **Ahmed Hassan** | Fullstack Developer | - |
+| **Ahmed Yahia** | Computer Vision Engineer | - |
+| **Enas Emad** | Data Scientist | [@EnasEmad](https://github.com/EnasEmad) |
+| **Aya Abdallah** | Frontend Developer | - |
 
-Add this script tag to any HTML page:
+---
 
-```html
-<script src="http://localhost:3000/embed.js"></script>
-```
+## 📄 License
 
-The chatbot icon will appear in the bottom-right corner.
-
-## 📁 Project Structure
-
-```
-NTI_FP1/
-├── backend/
-│   ├── app/
-│   │   ├── core/config.py       # Configuration
-│   │   ├── models/schemas.py    # Pydantic models
-│   │   ├── routers/search.py    # API endpoints
-│   │   ├── services/
-│   │   │   ├── agents/          # AI agents (Search, Response, etc.)
-│   │   │   ├── workflow.py      # LangGraph workflow
-│   │   │   └── llm_service.py   # LLM initialization
-│   │   ├── utils/
-│   │   │   ├── embeddings.py    # CLIP embeddings
-│   │   │   └── faiss_manager.py # Vector database
-│   │   └── main.py              # FastAPI app
-│   ├── saved_audio/             # Temp audio storage
-│   ├── vector_db/               # Saved FAISS index
-│   └── requirements.txt
-├── frontend/
-│   ├── public/
-│   │   ├── index.html
-│   │   ├── styles.css           # Magic UI
-│   │   └── script.js            # Widget logic
-│   ├── embed.js                 # Embeddable script
-│   └── server.js                # Express server
-├── data/
-│   ├── styles.csv               # Product catalog
-│   └── images/                  # Product images
-└── README.md
-```
-
-## 🤖 AI Pipeline
-
-1. **Image Validator**: CLIP validates if image is fashion-related
-2. **Image Description**: Extracts fashion attributes from image
-3. **Intent Classifier**: Determines user intent (search/greeting/etc)
-4. **Query Understanding**: Gemini generates search queries with gender awareness
-5. **Search Executor**: FAISS similarity search with gender filtering
-
-## ⚙️ Configuration
-
-Key settings in `backend/app/core/config.py`:
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `CLIP_MODEL` | `patrickjohncyh/fashion-clip` | Fashion CLIP model |
-| `GEMINI_MODEL` | `gemini-2.0-flash-lite` | Gemini model |
-| `TEXT_WEIGHT` | 0.30 | Text weight in hybrid search |
-| `IMAGE_WEIGHT` | 0.70 | Image weight in hybrid search |
-
-## 🐳 Docker (Optional)
-
-```bash
-docker-compose up -d
-```
-
-## 📝 Example Queries
-
-- "blue jeans" - Find blue jeans
-- "wedding outfit for men" - Men's formal wear
-- "party dress for women" - Women's party dresses
-- "casual summer outfit" - Both genders casual wear
-- Upload an image - Find visually similar items
-
-## 🔧 Troubleshooting
-
-**Backend not starting?**
-- Check GEMINI_API_KEY is set in .env
-- Ensure data/styles.csv exists
-- Check Python dependencies are installed
-
-**Frontend not loading?**
-- Ensure npm install completed
-- Check backend is running on port 8000
-
-**No search results?**
-- FAISS index may need to build (first run takes time)
-- Check vector_db/ folder has faiss_index.bin after first run
-
-## � Team Members
-
-- Abdullah Emara
-- Ahmed Hassan
-- Ahmed Yahia
-- Enas Emad
-- Aya Abdallah
-
-## 📊 Dataset
-
-We used the **Fashion Product Images (Small)** dataset from Kaggle for this project:
-[Fashion Product Images (Small)](https://www.kaggle.com/datasets/paramaggarwal/fashion-product-images-small)
-
-## �📄 License
-
-MIT
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
